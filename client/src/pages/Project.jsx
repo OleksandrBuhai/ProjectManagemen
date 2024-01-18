@@ -1,11 +1,11 @@
-import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@apollo/client";
-import { GET_PROJECT } from "../queries/projectsQueries";
-import React from 'react'
-import Spinner from "../components/Spinner";
+import React from 'react';
+import { Link, useParams } from "react-router-dom";
 import ClientInfo from "../components/ClientInfo";
 import DeleteProjectButton from "../components/DeleteProjectButton";
 import EditProjectForm from "../components/EditProjectForm";
+import Spinner from "../components/Spinner";
+import { GET_PROJECT } from "../queries/projectsQueries";
 
 export default function Project() {
 
@@ -29,7 +29,7 @@ export default function Project() {
   
             <h1>{data.project.name}</h1>
             <p>{data.project.description}</p>
-  
+            
             <h5 className='mt-3'>Project Status</h5>
             <p className='lead'>{data.project.status}</p>
   
@@ -38,6 +38,7 @@ export default function Project() {
             <EditProjectForm project={data.project} />
   
             <DeleteProjectButton projectId={data.project.id} />
+
           </div>
         )}
       </>

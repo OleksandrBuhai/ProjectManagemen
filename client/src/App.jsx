@@ -20,6 +20,11 @@ const cache = new InMemoryCache({
             return incoming
           }
         },
+        developers: {
+          merge(existing, incoming) {
+            return incoming
+          }
+        }
       }
     }
   }

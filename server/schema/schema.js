@@ -1,5 +1,6 @@
 const Project = require('../models/Project');
 const Client = require('../models/Client');
+const Developers = require('../models/Developers')
 
 const {
   GraphQLObjectType,
@@ -25,8 +26,15 @@ const ProjectType = new GraphQLObjectType({
         return Client.findById(parent.clientId);
       },
     },
+    developers: {
+      type: new GraphQLList(DevelopersType),
+      resolve(parent, args) {
+        return Developers.find({ projectId: parent.id });
+      },
+    },
   }),
 });
+
 
 // Client Type
 const ClientType = new GraphQLObjectType({
@@ -38,6 +46,19 @@ const ClientType = new GraphQLObjectType({
     phone: { type: GraphQLString },
   }),
 });
+
+//Developers Type 
+const DevelopersType = new GraphQLObjectType({
+  name: 'Devs',
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    position: { type: GraphQLString },
+    email: { type: GraphQLString },
+    phone: { type: GraphQLString },
+  }),
+});
+
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
@@ -68,6 +89,19 @@ const RootQuery = new GraphQLObjectType({
         return Client.findById(args.id);
       },
     },
+    developers: {
+      type: new GraphQLList(DevelopersType),
+      resolve(parent, args) {
+        return Developers.find();
+      },
+    },
+    developer: {
+      type: DevelopersType,
+      args: { id: { type: GraphQLID } },
+      resolve(parent, args) {
+        return Developers.findById(args.id);
+      },
+    }
   },
 });
 
@@ -135,6 +169,7 @@ const mutation = new GraphQLObjectType({
           defaultValue: 'Not Started',
         },
         clientId: { type: GraphQLNonNull(GraphQLID) },
+        developerId: { type: GraphQLID }, // Allow developerId to be optional
       },
       resolve(parent, args) {
         const project = new Project({
@@ -142,6 +177,7 @@ const mutation = new GraphQLObjectType({
           description: args.description,
           status: args.status,
           clientId: args.clientId,
+          developerId: args.developerId,
         });
 
         return project.save();
@@ -187,6 +223,38 @@ const mutation = new GraphQLObjectType({
           },
           { new: true }
         );
+      },
+    },
+    //Add Developer 
+    addDeveloper: {
+      type: DevelopersType,
+      args: {
+        name: { type: GraphQLNonNull(GraphQLString) },
+        position: { type: GraphQLNonNull(GraphQLString) },
+        email: { type: GraphQLNonNull(GraphQLString) },
+        phone: { type: GraphQLNonNull(GraphQLString) },
+        projectId: { type: GraphQLNonNull(GraphQLID) },
+      },
+      resolve(parent, args) {
+        const developer = new Developers({
+          name: args.name,
+          position: args.position,
+          email: args.email,
+          phone: args.phone,
+          projectId: args.projectId,
+        });
+
+        return developer.save();
+      },
+      //Remove developer
+      deleteProject: {
+        type: DevelopersType,
+        args: {
+          id: { type: GraphQLNonNull(GraphQLID) },
+        },
+        resolve(parent, args) {
+          return Developers.findByIdAndDelete(args.id);
+        },
       },
     },
   },

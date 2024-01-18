@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FaList } from 'react-icons/fa';
 import { useMutation, useQuery } from '@apollo/client';
 import { ADD_PROJECT } from '../mutation/projectMutation';
 import { GET_PROJECTS } from '../queries/projectsQueries';
 import { GET_CLIENTS } from '../queries/clientsQueries';
+import { GET_DEVS } from '../queries/developerQueries';
 
 export default function AddProjectModal() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [clientId, setClientId] = useState('');
+  const [developerId, setDeveloperId] = useState(''); 
   const [status, setStatus] = useState('new');
 
   const [addProject] = useMutation(ADD_PROJECT, {
-    variables: { name, description, clientId, status },
+    variables: { name, description, clientId, developerId, status },
     update(cache, { data: { addProject } }) {
       const { projects } = cache.readQuery({ query: GET_PROJECTS });
       cache.writeQuery({
@@ -22,30 +24,31 @@ export default function AddProjectModal() {
     },
   });
 
-
-  const { loading, error, data } = useQuery(GET_CLIENTS);
+  const { loading: clientLoading, error: clientError, data: clientData } = useQuery(GET_CLIENTS);
+  const { loading: devLoading, error: devError, data: devData } = useQuery(GET_DEVS);
 
   const onSubmit = (e) => {
     e.preventDefault();
 
-    if (name === '' || description === '' || status === '') {
+    if (name === '' || description === '' || status === '' || clientId === '' || developerId === '') {
       return alert('Please fill in all fields');
     }
 
-    addProject(name, description, clientId, status);
+    addProject();
 
     setName('');
     setDescription('');
     setStatus('new');
     setClientId('');
+    setDeveloperId('');
   };
 
-  if (loading) return null;
-  if (error) return 'Something Went Wrong';
+  if (clientLoading || devLoading) return null;
+  if (clientError || devError) return 'Something Went Wrong';
 
   return (
     <>
-      {!loading && !error && (
+      {!clientLoading && !clientError && !devLoading && !devError && (
         <>
           <button
             type='button'
@@ -122,9 +125,26 @@ export default function AddProjectModal() {
                         onChange={(e) => setClientId(e.target.value)}
                       >
                         <option value=''>Select Client</option>
-                        {data.clients.map((client) => (
+                        {clientData.clients.map((client) => (
                           <option key={client.id} value={client.id}>
                             {client.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className='mb-3'>
+                      <label className='form-label'>Developer</label>
+                      <select
+                        id='developerId'
+                        className='form-select'
+                        value={developerId}
+                        onChange={(e) => setDeveloperId(e.target.value)}
+                      >
+                        <option value=''>Select Developer</option>
+                        {devData.developers.map((dev) => (
+                          <option key={dev.id} value={dev.id}>
+                            {dev.name}
                           </option>
                         ))}
                       </select>
