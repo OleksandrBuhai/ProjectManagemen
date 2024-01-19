@@ -16,7 +16,15 @@ const ProjectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Client'
     },
-    developerId: {
+    frontendDeveloperId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Developers'
+    },
+    backendDeveloperId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Developers'
+    },
+    designDeveloperId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Developers'
     }

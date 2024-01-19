@@ -2,7 +2,6 @@ import React from 'react'
 
 
 
-
 export default function ProjectCard({ project }) {
     return (
         <div className='col-md-6'>

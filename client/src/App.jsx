@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Home from "./pages/Home";
 import NotFound from './pages/NotFound';
 import Project from './pages/Project';
+import DevelopersList from './components/DevelopersList';
 
 
 const cache = new InMemoryCache({
@@ -32,7 +33,7 @@ const cache = new InMemoryCache({
 
 const client = new ApolloClient({
   uri: 'http://localhost:4000/graphql',
-  cache: new InMemoryCache()
+  cache: cache
 })
 
 
@@ -47,7 +48,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path='/projects/:id' element={<Project />} />
+              <Route path='/developers' element={<DevelopersList/>}/>
               <Route path='*' element={<NotFound />} />
+              
             </Routes>
           </div>
 

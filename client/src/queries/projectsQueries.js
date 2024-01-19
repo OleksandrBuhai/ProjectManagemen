@@ -6,6 +6,8 @@ const GET_PROJECTS = gql`
             id
             name
             status
+        
+           
         }
     }
 `
@@ -23,6 +25,7 @@ query getProject($id: ID!){
             email
             phone
         }
+    
     }
 }`
 

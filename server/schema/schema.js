@@ -26,15 +26,26 @@ const ProjectType = new GraphQLObjectType({
         return Client.findById(parent.clientId);
       },
     },
-    developers: {
-      type: new GraphQLList(DevelopersType),
+    frontendDeveloper: { 
+      type: DevelopersType,
       resolve(parent, args) {
-        return Developers.find({ projectId: parent.id });
+        return Developers.findById(parent.frontendDeveloperId); 
+      },
+    },
+    backendDeveloper: { 
+      type: DevelopersType,
+      resolve(parent, args) {
+        return Developers.findById(parent.backendDeveloperId);
+      },
+    },
+    designDeveloper: { 
+      type: DevelopersType,
+      resolve(parent, args) {
+        return Developers.findById(parent.designDeveloperId); 
       },
     },
   }),
 });
-
 
 // Client Type
 const ClientType = new GraphQLObjectType({
@@ -47,17 +58,29 @@ const ClientType = new GraphQLObjectType({
   }),
 });
 
+//Developers Position
+const DeveloperPositionEnum = new GraphQLEnumType({
+  name: 'DeveloperPosition',
+  values: {
+    frontend: { value: 'Front End' },
+    backend: { value: 'Back End' },
+    design: { value: 'UI/UX Design' },
+  },
+});
+
 //Developers Type 
 const DevelopersType = new GraphQLObjectType({
   name: 'Devs',
   fields: () => ({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
-    position: { type: GraphQLString },
+    position: { type: DeveloperPositionEnum },
     email: { type: GraphQLString },
     phone: { type: GraphQLString },
+    projectId: { type: GraphQLString }
   }),
 });
+
 
 
 const RootQuery = new GraphQLObjectType({
@@ -91,8 +114,15 @@ const RootQuery = new GraphQLObjectType({
     },
     developers: {
       type: new GraphQLList(DevelopersType),
+      args: {
+        position: { type: GraphQLString}
+      },
       resolve(parent, args) {
-        return Developers.find();
+        if(args.position){
+          return Developers.find({ position: args.position})
+        } else {
+          return Developers.find()
+        }
       },
     },
     developer: {
@@ -106,6 +136,7 @@ const RootQuery = new GraphQLObjectType({
 });
 
 // Mutations
+
 const mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
@@ -129,28 +160,28 @@ const mutation = new GraphQLObjectType({
     },
     // Delete a client
     deleteClient: {
-        type: ClientType,
-        args: {
-          id: { type: GraphQLNonNull(GraphQLID) },
-        },
-        async resolve(parent, args) {
-          try {
-            const client = await Client.findById(args.id);
-            const projects = await Project.find({ clientId: args.id });
-  
-            for (const project of projects) {
-              await project.deleteOne();
-            }
-  
-            await client.deleteOne();
-  
-            return client;
-          } catch (error) {
-            throw new Error(`Error deleting client: ${error.message}`);
-          }
-        },
+      type: ClientType,
+      args: {
+        id: { type: GraphQLNonNull(GraphQLID) },
       },
-  
+      async resolve(parent, args) {
+        try {
+          const client = await Client.findById(args.id);
+          const projects = await Project.find({ clientId: args.id });
+
+          for (const project of projects) {
+            await project.deleteOne();
+          }
+
+          await client.deleteOne();
+
+          return client;
+        } catch (error) {
+          throw new Error(`Error deleting client: ${error.message}`);
+        }
+      },
+    },
+
     // Add a project
     addProject: {
       type: ProjectType,
@@ -169,20 +200,27 @@ const mutation = new GraphQLObjectType({
           defaultValue: 'Not Started',
         },
         clientId: { type: GraphQLNonNull(GraphQLID) },
-        developerId: { type: GraphQLID }, // Allow developerId to be optional
+        frontendDeveloperId: { type: GraphQLNonNull(GraphQLID) },
+        backendDeveloperId: { type: GraphQLNonNull(GraphQLID) },
+        designDeveloperId: { type: GraphQLNonNull(GraphQLID) },
       },
-      resolve(parent, args) {
+      async resolve(parent, args) {
         const project = new Project({
           name: args.name,
           description: args.description,
           status: args.status,
           clientId: args.clientId,
-          developerId: args.developerId,
+          frontendDeveloperId: args.frontendDeveloperId,
+          backendDeveloperId: args.backendDeveloperId,
+          designDeveloperId: args.designDeveloperId,
         });
 
-        return project.save();
+        const savedProject = await project.save();
+
+        return savedProject;
       },
     },
+
     // Delete a project
     deleteProject: {
       type: ProjectType,
@@ -193,6 +231,7 @@ const mutation = new GraphQLObjectType({
         return Project.findByIdAndDelete(args.id);
       },
     },
+
     // Update a project
     updateProject: {
       type: ProjectType,
@@ -225,15 +264,16 @@ const mutation = new GraphQLObjectType({
         );
       },
     },
-    //Add Developer 
+
+    // Add Developer 
     addDeveloper: {
       type: DevelopersType,
       args: {
         name: { type: GraphQLNonNull(GraphQLString) },
-        position: { type: GraphQLNonNull(GraphQLString) },
+        position: { type: GraphQLNonNull(DeveloperPositionEnum) },
         email: { type: GraphQLNonNull(GraphQLString) },
         phone: { type: GraphQLNonNull(GraphQLString) },
-        projectId: { type: GraphQLNonNull(GraphQLID) },
+        projectId: { type: GraphQLID },
       },
       resolve(parent, args) {
         const developer = new Developers({
@@ -246,19 +286,21 @@ const mutation = new GraphQLObjectType({
 
         return developer.save();
       },
-      //Remove developer
-      deleteProject: {
-        type: DevelopersType,
-        args: {
-          id: { type: GraphQLNonNull(GraphQLID) },
-        },
-        resolve(parent, args) {
-          return Developers.findByIdAndDelete(args.id);
-        },
+    },
+
+    // Remove developer
+    deleteDeveloper: {
+      type: DevelopersType,
+      args: {
+        id: { type: GraphQLNonNull(GraphQLID) },
+      },
+      resolve(parent, args) {
+        return Developers.findByIdAndDelete(args.id);
       },
     },
   },
 });
+
 
 module.exports = new GraphQLSchema({
   query: RootQuery,

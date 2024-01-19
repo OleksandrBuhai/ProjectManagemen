@@ -1,30 +1,38 @@
 import { gql } from '@apollo/client';
 
 const ADD_PROJECT = gql`
-  mutation AddProject(
-    $name: String!
-    $description: String!
-    $status: ProjectStatus!
-    $clientId: ID!
+mutation AddProject(
+  $name: String!
+  $description: String!
+  $status: ProjectStatus!
+  $clientId: ID!
+  $frontendDeveloperId: ID!
+  $backendDeveloperId: ID!
+  $designDeveloperId: ID!
+) {
+  addProject(
+    name: $name
+    description: $description
+    status: $status
+    clientId: $clientId
+    frontendDeveloperId: $frontendDeveloperId
+    backendDeveloperId: $backendDeveloperId
+    designDeveloperId: $designDeveloperId
   ) {
-    addProject(
-      name: $name
-      description: $description
-      status: $status
-      clientId: $clientId
-    ) {
+    id
+    name
+    description
+    status
+    client {
       id
       name
-      description
-      status
-      client {
-        id
-        name
-        email
-        phone
-      }
+      email
+      phone
     }
+
   }
+}
+
 `;
 
 const DELETE_PROJECT = gql`
