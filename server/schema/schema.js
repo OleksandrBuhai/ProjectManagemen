@@ -12,6 +12,22 @@ const {
   GraphQLEnumType,
 } = require('graphql');
 
+
+//Developers Type 
+const DevelopersType = new GraphQLObjectType({
+  name: 'Devs',
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    position: { type: DeveloperPositionEnum },
+    title: { type: DeveloperTitleEnum },
+    email: { type: GraphQLString },
+    phone: { type: GraphQLString },
+    projectId: { type: GraphQLID }
+  }),
+});
+
+
 // Project Type
 const ProjectType = new GraphQLObjectType({
   name: 'Project',
@@ -26,22 +42,22 @@ const ProjectType = new GraphQLObjectType({
         return Client.findById(parent.clientId);
       },
     },
-    frontendDeveloper: { 
+    frontendDeveloper: {
       type: DevelopersType,
       resolve(parent, args) {
-        return Developers.findById(parent.frontendDeveloperId); 
+        return Developers.findById(parent.frontendDeveloperId);
       },
     },
-    backendDeveloper: { 
+    backendDeveloper: {
       type: DevelopersType,
       resolve(parent, args) {
         return Developers.findById(parent.backendDeveloperId);
       },
     },
-    designDeveloper: { 
+    designDeveloper: {
       type: DevelopersType,
       resolve(parent, args) {
-        return Developers.findById(parent.designDeveloperId); 
+        return Developers.findById(parent.designDeveloperId);
       },
     },
   }),
@@ -68,18 +84,17 @@ const DeveloperPositionEnum = new GraphQLEnumType({
   },
 });
 
-//Developers Type 
-const DevelopersType = new GraphQLObjectType({
-  name: 'Devs',
-  fields: () => ({
-    id: { type: GraphQLID },
-    name: { type: GraphQLString },
-    position: { type: DeveloperPositionEnum },
-    email: { type: GraphQLString },
-    phone: { type: GraphQLString },
-    projectId: { type: GraphQLString }
-  }),
+//Developer Title
+const DeveloperTitleEnum = new GraphQLEnumType({
+  name: 'DeveloperTitle',
+  values: {
+    junior: { value: 'Junior' },
+    middle: { value: 'Middle' },
+    senior: { value: 'Senior' },
+  },
 });
+
+
 
 
 
@@ -115,11 +130,11 @@ const RootQuery = new GraphQLObjectType({
     developers: {
       type: new GraphQLList(DevelopersType),
       args: {
-        position: { type: GraphQLString}
+        position: { type: GraphQLString }
       },
       resolve(parent, args) {
-        if(args.position){
-          return Developers.find({ position: args.position})
+        if (args.position) {
+          return Developers.find({ position: args.position })
         } else {
           return Developers.find()
         }
@@ -215,7 +230,14 @@ const mutation = new GraphQLObjectType({
           designDeveloperId: args.designDeveloperId,
         });
 
+
         const savedProject = await project.save();
+
+
+        await Developers.updateMany(
+          { _id: { $in: [args.frontendDeveloperId, args.backendDeveloperId, args.designDeveloperId] } },
+          { $set: { projectId: savedProject._id } }
+        );
 
         return savedProject;
       },
@@ -271,22 +293,52 @@ const mutation = new GraphQLObjectType({
       args: {
         name: { type: GraphQLNonNull(GraphQLString) },
         position: { type: GraphQLNonNull(DeveloperPositionEnum) },
+        title: { type: GraphQLNonNull(DeveloperTitleEnum) },
         email: { type: GraphQLNonNull(GraphQLString) },
         phone: { type: GraphQLNonNull(GraphQLString) },
         projectId: { type: GraphQLID },
       },
-      resolve(parent, args) {
-        const developer = new Developers({
-          name: args.name,
-          position: args.position,
-          email: args.email,
-          phone: args.phone,
-          projectId: args.projectId,
-        });
+      async resolve(parent, args) {
+        try {
+          
+          const project = await Project.findById(args.projectId);
 
-        return developer.save();
+          if (!project) {
+            const developer = new Developers({
+              name: args.name,
+              position: args.position,
+              title: args.title,
+              email: args.email,
+              phone: args.phone,
+              projectId: args.projectId,
+            });
+
+            const savedDeveloper = await developer.save();
+            return savedDeveloper;
+          }
+
+          const developer = new Developers({
+            name: args.name,
+            position: args.position,
+            title: args.title,
+            email: args.email,
+            phone: args.phone,
+            projectId: args.projectId,
+          });
+
+          const savedDeveloper = await developer.save();
+
+        
+          project.developers.push(savedDeveloper._id);
+          await project.save();
+
+          return savedDeveloper;
+        } catch (error) {
+          throw new Error(`Error adding developer: ${error.message}`);
+        }
       },
     },
+
 
     // Remove developer
     deleteDeveloper: {

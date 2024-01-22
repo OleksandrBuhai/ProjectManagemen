@@ -8,6 +8,8 @@ const GET_DEVS = gql`
       email
       phone
       position
+      title
+      projectId
     }
   }
 `;
@@ -20,6 +22,7 @@ query getFront($position: String!) {
     name
     phone
     email
+    projectId
   }
 }
 `;
@@ -31,6 +34,7 @@ query getBack($position: String!) {
     name
     phone
     email
+    projectId
   }
 }
 `;
@@ -42,6 +46,7 @@ query getDesign($position: String!) {
     name
     phone
     email
+    projectId
   }
 }
 `;

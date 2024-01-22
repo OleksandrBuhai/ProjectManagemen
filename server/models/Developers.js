@@ -8,6 +8,10 @@ const DeveloperSchema = new mongoose.Schema({
         type: String,
         enum: ['Front End', 'Back End', 'UI/UX Design'],
     },
+    title: {
+        type: String,
+        enum: ['Junior', 'Middle', 'Senior'],
+    },
     email: {
         type: String,
     },

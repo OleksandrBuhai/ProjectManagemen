@@ -7,6 +7,7 @@ import Project from './pages/Project';
 import DevelopersList from './components/DevelopersList';
 
 
+
 const cache = new InMemoryCache({
   typePolicies: {
     Query: {
@@ -49,6 +50,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path='/projects/:id' element={<Project />} />
               <Route path='/developers' element={<DevelopersList/>}/>
+              
               <Route path='*' element={<NotFound />} />
               
             </Routes>

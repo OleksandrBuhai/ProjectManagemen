@@ -6,6 +6,7 @@ import DeleteProjectButton from "../components/DeleteProjectButton";
 import EditProjectForm from "../components/EditProjectForm";
 import Spinner from "../components/Spinner";
 import { GET_PROJECT } from "../queries/projectsQueries";
+import DeveloperInfo from "../components/DeveloperInfo";
 
 export default function Project() {
 
@@ -34,6 +35,11 @@ export default function Project() {
             <p className='lead'>{data.project.status}</p>
   
             <ClientInfo client={data.project.client} />
+
+            <DeveloperInfo frontEnd={data.project.frontendDeveloper}
+              backEnd={data.project.backendDeveloper}
+              design={data.project.designDeveloper}
+            />
   
             <EditProjectForm project={data.project} />
   

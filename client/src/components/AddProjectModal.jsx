@@ -27,7 +27,6 @@ export default function AddProjectModal() {
       designDeveloperId,
     },
     update(cache, { data: { addProject } }) {
-
       const { projects } = cache.readQuery({ query: GET_PROJECTS });
       cache.writeQuery({
         query: GET_PROJECTS,
@@ -37,14 +36,16 @@ export default function AddProjectModal() {
   });
 
 
-
   const { loading: clientLoading, error: clientError, data: clientData } = useQuery(GET_CLIENTS);
+
   const { loading: frontendDevLoading, error: frontendDevError, data: frontendDevData } = useQuery(GET_FRONTEND_DEVS, {
     variables: { position: 'Front End' },
   });
+
   const { loading: backendDevLoading, error: backendDevError, data: backendDevData } = useQuery(GET_BACKEND_DEVS, {
     variables: { position: 'Back End' },
   });
+  
   const { loading: designDevLoading, error: designDevError, data: designDevData } = useQuery(GET_DESIGN_DEVS, {
     variables: { position: 'UI/UX Design' },
   });
@@ -81,9 +82,14 @@ export default function AddProjectModal() {
   };
 
 
+
   if (clientLoading || frontendDevLoading || backendDevLoading || designDevLoading) return null;
   if (clientError || frontendDevError || backendDevError || designDevError) return 'Something Went Wrong';
 
+
+  const filterDevelopersWithoutProject = (developers) => {
+    return developers.filter((dev) => !dev.projectId);
+  };
   return (
     <>
       <button
@@ -97,7 +103,6 @@ export default function AddProjectModal() {
           <div>New Project</div>
         </div>
       </button>
-
       <div
         className='modal fade'
         id='addProjectModal'
@@ -181,11 +186,16 @@ export default function AddProjectModal() {
                           onChange={(e) => setFrontendDeveloperId(e.target.value)}
                         >
                           <option value=''>Select Frontend Developer</option>
-                          {frontendDevData.developers.map((dev) => (
-                            <option key={dev.id} value={dev.id}>
-                              {dev.name}
-                            </option>
-                          ))}
+                          {frontendDevData.developers
+                            .filter(dev => !dev.projectId)
+                            .map((dev) => (
+                              <option key={dev.id} value={dev.id}>
+                                {dev.name}
+                              </option>
+                            ))}
+                          {frontendDevData.developers.every(dev => dev.projectId) && (
+                            <option disabled>No available developers</option>
+                          )}
                         </select>
                       </>
                     )}
@@ -198,11 +208,16 @@ export default function AddProjectModal() {
                           onChange={(e) => setBackendDeveloperId(e.target.value)}
                         >
                           <option value=''>Select Backend Developer</option>
-                          {backendDevData.developers.map((dev) => (
-                            <option key={dev.id} value={dev.id}>
-                              {dev.name}
-                            </option>
-                          ))}
+                          {backendDevData.developers
+                            .filter(dev => !dev.projectId)
+                            .map((dev) => (
+                              <option key={dev.id} value={dev.id}>
+                                {dev.name}
+                              </option>
+                            ))}
+                          {backendDevData.developers.every(dev => dev.projectId) && (
+                            <option disabled>No available developers</option>
+                          )}
                         </select>
                       </>
                     )}
@@ -215,17 +230,21 @@ export default function AddProjectModal() {
                           onChange={(e) => setDesignDeveloperId(e.target.value)}
                         >
                           <option value=''>Select Design Developer</option>
-                          {designDevData.developers.map((dev) => (
-                            <option key={dev.id} value={dev.id}>
-                              {dev.name}
-                            </option>
-                          ))}
+                          {designDevData.developers
+                            .filter(dev => !dev.projectId)
+                            .map((dev) => (
+                              <option key={dev.id} value={dev.id}>
+                                {dev.name}
+                              </option>
+                            ))}
+                          {designDevData.developers.every(dev => dev.projectId) && (
+                            <option disabled>No available developers</option>
+                          )}
                         </select>
                       </>
                     )}
                   </div>
                 </div>
-
                 <button
                   type='submit'
                   data-bs-dismiss='modal'
